@@ -16,12 +16,13 @@ import kotlinx.html.p
 import kotlinx.html.script
 import kotlinx.html.stream.createHTML
 import kotlinx.html.title
+import kotlinx.html.unsafe
 import org.springframework.stereotype.Component
 
 @Component
 class GamePageRenderer {
 
-    fun render(config: GameConfig): String {
+    fun render(config: GameConfig, snapshot: GameSnapshot?): String {
         return "<!DOCTYPE html>\n" + createHTML().html {
             lang = "en"
             head {
@@ -74,8 +75,30 @@ class GamePageRenderer {
                     }
                 }
 
+                script {
+                    unsafe {
+                        +"window.CONNECT_FOUR_STATE = ${snapshot.toJsObject(config)};"
+                    }
+                }
                 script(src = "/game.js") {}
             }
         }
     }
+
+    private fun GameSnapshot?.toJsObject(config: GameConfig): String {
+        val safeSnapshot = this ?: GameSnapshot(emptyBoard(config))
+        val boardText = safeSnapshot.board.joinToString(prefix = "[", postfix = "]") { row ->
+            row.joinToString(prefix = "[", postfix = "]")
+        }
+
+        return """{
+            board: $boardText,
+            currentPlayer: ${safeSnapshot.currentPlayer},
+            winner: ${safeSnapshot.winner},
+            draw: ${safeSnapshot.draw}
+        }""".trimIndent()
+    }
+
+    private fun emptyBoard(config: GameConfig): List<List<Int>> =
+        List(config.rows) { List(config.columns) { 0 } }
 }

@@ -10,11 +10,12 @@ if (gameRoot && controlsElement && boardElement && statusElement && restartButto
         rows: Number(gameRoot.dataset.rows),
         connect: Number(gameRoot.dataset.connect)
     };
+    const initialState = window.CONNECT_FOUR_STATE || {};
 
-    let board = createBoard();
-    let currentPlayer = 1;
-    let winner = 0;
-    let draw = false;
+    let board = initialState.board || createBoard();
+    let currentPlayer = initialState.currentPlayer || 1;
+    let winner = initialState.winner || 0;
+    let draw = initialState.draw || false;
     let lastMove = null;
 
     function createBoard() {
@@ -79,6 +80,19 @@ if (gameRoot && controlsElement && boardElement && statusElement && restartButto
         lastMove = null;
     }
 
+    function persistState() {
+        fetch("/game/state", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                board: board,
+                currentPlayer: currentPlayer,
+                winner: winner,
+                draw: draw
+            })
+        }).catch(function () {});
+    }
+
     function dropPiece(column) {
         if (winner !== 0 || draw) {
             return;
@@ -101,6 +115,7 @@ if (gameRoot && controlsElement && boardElement && statusElement && restartButto
             }
 
             render();
+            persistState();
             return;
         }
     }
@@ -167,6 +182,7 @@ if (gameRoot && controlsElement && boardElement && statusElement && restartButto
         draw = false;
         lastMove = null;
         render();
+        persistState();
     });
 
     render();

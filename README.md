@@ -1,7 +1,5 @@
 # Connect Four
 
-Requires Java 21.
-
 Run:
 
 ```powershell
@@ -9,9 +7,3 @@ Run:
 ```
 
 Open `http://localhost:8080`.
-
-If port `8080` is already in use:
-
-```powershell
-.\gradlew.bat bootRun --args="--server.port=8081"
-```
